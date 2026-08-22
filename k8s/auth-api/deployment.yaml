@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: auth-api
-          image: ghcr.io/YOUR_GITHUB_USERNAME/auth-api:latest
+          image: ghcr.io/lsuthar-coder/auth-api:latest
 
           imagePullPolicy: Always
 
