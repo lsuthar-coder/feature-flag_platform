@@ -1,0 +1,104 @@
+name: Deploy Auth API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/auth-api/**'
+      - 'k8s/auth-api/**'
+      - '.github/workflows/deploy-auth-api.yml'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/auth-api
+  NAMESPACE: feature-flag
+  DEPLOYMENT: auth-api
+  CONTAINER: auth-api
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─────────────────────────────────────
+      # Checkout
+      # ─────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────
+      # Docker / GHCR
+      # ─────────────────────────────────────
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/auth-api
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+      # ─────────────────────────────────────
+      # Kubernetes
+      # ─────────────────────────────────────
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/auth-api/deployment.yaml
+          kubectl apply -f k8s/auth-api/service.yaml
+          kubectl apply -f k8s/auth-api/hpa.yaml
+
+      # ─────────────────────────────────────
+      # Deploy new image
+      # ─────────────────────────────────────
+      - name: Update image
+        run: |
+          kubectl -n ${{ env.NAMESPACE }} \
+            set image deployment/${{ env.DEPLOYMENT }} \
+            ${{ env.CONTAINER }}=${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # ─────────────────────────────────────
+      # Rollout
+      # ─────────────────────────────────────
+      - name: Wait for rollout
+        run: |
+          kubectl -n ${{ env.NAMESPACE }} \
+            rollout status deployment/${{ env.DEPLOYMENT }} \
+            --timeout=180s
+
+      # ─────────────────────────────────────
+      # Verify
+      # ─────────────────────────────────────
+      - name: Deployment status
+        run: |
+          kubectl -n ${{ env.NAMESPACE }} \
+            get deployment ${{ env.DEPLOYMENT }}
+
+          kubectl -n ${{ env.NAMESPACE }} \
+            get pods -l app=${{ env.DEPLOYMENT }}
+
+          kubectl -n ${{ env.NAMESPACE }} \
+            get hpa ${{ env.DEPLOYMENT }}
