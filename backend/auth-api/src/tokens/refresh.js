@@ -122,7 +122,7 @@ function cookieOptions() {
   return {
     httpOnly:  true,
     secure:    process.env.NODE_ENV === 'production',
-    sameSite:  'strict',
+    sameSite:  'None',
     maxAge:    REFRESH_TOKEN_SECONDS * 1000, // milliseconds
     path:      '/auth',  // only sent to /auth/* endpoints
   };
