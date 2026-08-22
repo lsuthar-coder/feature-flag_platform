@@ -12,9 +12,10 @@ import HomePage from "./pages/HomePage"
 import FlagsPage from "./pages/FlagsPage"
 import AnalyticsPage from "./pages/AnalyticsPage"
 
-function Guard({ children }) {
-  const token = useSelector(s => s.auth.token)
-  return token ? children : <Navigate to="/login" replace />
+function ProtectedLayout() {
+  const token = useSelector((s) => s.auth.token)
+  if (!token) return <Navigate to="/login" replace />
+  return <Layout />
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -25,7 +26,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route element={<Guard><Layout /></Guard>}>
+            <Route element={<ProtectedLayout />}>
               <Route index element={<HomePage />} />
               <Route path="/flags" element={<FlagsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
