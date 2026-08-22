@@ -18,6 +18,7 @@ const flagsRouter     = require('./routes/flags');
 const variantsRouter  = require('./routes/variants');
 const overridesRouter = require('./routes/overrides');
 const auditRouter     = require('./routes/audit');
+const runMigrations = require('./db/migrate');
 
 const app  = express();
 const PORT = process.env.PORT || 4000;
@@ -62,6 +63,20 @@ app.use((err, req, res, _next) => {
 });
 
 // ── Start server ───────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(JSON.stringify({ event: 'server_started', port: PORT }));
-});
+async function startServer() {
+  try {
+    await runMigrations();
+
+    app.listen(PORT, () => {
+      console.log(JSON.stringify({
+        event: 'server_started',
+        port: PORT,
+      }));
+    });
+  } catch (error) {
+  console.error('MIGRATION ERROR:', error);
+  process.exit(1);
+}
+}
+
+startServer();
