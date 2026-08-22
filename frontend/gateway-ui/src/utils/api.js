@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { store, authActions } from '../store'
 
-const BASE = 'https://auth-api.flag.lsuthar.in'
+const BASE = "https://gateway-api.flag.lsuthar.in"
 const api  = axios.create({ baseURL: BASE, withCredentials: true })
 
 api.interceptors.request.use((config) => {
