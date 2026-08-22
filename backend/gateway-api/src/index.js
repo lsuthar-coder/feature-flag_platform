@@ -27,9 +27,9 @@ const PORT = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: [ // allowed origins for CORS
-    'http://https://auth.flag.lsuthar.in',
-    'http://https://feature.flag.lsuthar.in',
-    'http://https://gateway.flag.lsuthar.in',
+    'https://auth.flag.lsuthar.in',
+    'https://feature.flag.lsuthar.in',
+    'https://gateway.flag.lsuthar.in',
   ],
   credentials: true, // allow cookie, authorization headers with CORS
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // allowed methods
