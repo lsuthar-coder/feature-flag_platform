@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom"
 import { Provider, useSelector } from "react-redux"
 import { ThemeProvider } from "@mui/material"
 import { Toaster } from "react-hot-toast"
@@ -15,7 +15,11 @@ import AnalyticsPage from "./pages/AnalyticsPage"
 function ProtectedLayout() {
   const token = useSelector((s) => s.auth.token)
   if (!token) return <Navigate to="/login" replace />
-  return <Layout />
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  )
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
