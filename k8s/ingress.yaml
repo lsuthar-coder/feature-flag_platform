@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: feature-flag-ui
+  namespace: feature-flag
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+
+  tls:
+    - hosts:
+        - auth.flag.lsuthar.in
+        - feature.flag.lsuthar.in
+        - gateway.flag.lsuthar.in
+      secretName: flag-wildcard-tls
+
+  rules:
+    - host: auth.flag.lsuthar.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-ui
+                port:
+                  number: 80
+
+    - host: feature.flag.lsuthar.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: feature-flag-ui
+                port:
+                  number: 80
+
+    - host: gateway.flag.lsuthar.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway-ui
+                port:
+                  number: 80

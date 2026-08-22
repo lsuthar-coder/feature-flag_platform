@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feature-flag-ui
+  namespace: feature-flag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: feature-flag-ui
+  template:
+    metadata:
+      labels:
+        app: feature-flag-ui
+    spec:
+      containers:
+        - name: feature-flag-ui
+          image: ghcr.io/lsuthar-coder/feature-flag-ui:latest
+          ports:
+            - name: http
+              containerPort: 80
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20

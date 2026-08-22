@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-ui
+  namespace: feature-flag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-ui
+  template:
+    metadata:
+      labels:
+        app: gateway-ui
+    spec:
+      containers:
+        - name: gateway-ui
+          image: ghcr.io/lsuthar-coder/gateway-ui:latest
+          ports:
+            - name: http
+              containerPort: 80
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: feature-flag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/lsuthar-coder/gateway:latest
+
+          ports:
+            - name: http
+              containerPort: 3000
+
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-db
+                  key: postgres_url
+
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-db
+                  key: redis_url
+
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-api:5000"
+
+            - name: FLAG_SERVICE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-common
+                  key: flag_service_url
+
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
