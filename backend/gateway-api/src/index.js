@@ -27,12 +27,9 @@ const PORT = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: [ // allowed origins for CORS
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:3000',
-    'https://calm-grass-030e6b700.1.azurestaticapps.net',
-    'https://dashboard.lsuthar.in'
+    'http://https://auth.flag.lsuthar.in',
+    'http://https://feature-flag-ui.flag.lsuthar.in',
+    'http://https://gateway-ui.flag.lsuthar.in',
   ],
   credentials: true, // allow cookie, authorization headers with CORS
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // allowed methods
