@@ -1,0 +1,61 @@
+name: Deploy Gateway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/gateway-api/**"
+      - "k8s/gateway/**"
+      - ".github/workflows/deploy-api-gateway.yml"
+
+env:
+  IMAGE_NAME: ghcr.io/lsuthar-coder/gateway
+  NAMESPACE: feature-flag
+  DEPLOYMENT: gateway
+  CONTAINER: gateway
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/gateway-api
+          file: ./backend/gateway-api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy
+        run: |
+          kubectl -n ${{ env.NAMESPACE }} \
+            set image deployment/${{ env.DEPLOYMENT }} \
+            ${{ env.CONTAINER }}=${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+          kubectl -n ${{ env.NAMESPACE }} \
+            rollout status deployment/${{ env.DEPLOYMENT }} \
+            --timeout=180s
