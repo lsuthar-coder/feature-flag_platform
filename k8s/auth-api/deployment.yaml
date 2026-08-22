@@ -5,6 +5,7 @@ metadata:
   namespace: feature-flag
   labels:
     app: auth-api
+
 spec:
   replicas: 2
 
@@ -22,33 +23,47 @@ spec:
         - name: auth-api
           image: ghcr.io/lsuthar-coder/auth-api:latest
 
-          imagePullPolicy: Always
-
           ports:
             - name: http
-              containerPort: 5001
+              containerPort: 5000
               protocol: TCP
 
-          envFrom:
-            - secretRef:
-                name: auth-api-secrets
+          env:
+            # PostgreSQL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-db
+                  key: postgres_url
+
+            # Redis
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-db
+                  key: redis_url
+
+            # RSA private key
+            - name: PRIVATE_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-pem
+                  key: private_key_pem
+
+            # RSA public key
+            - name: PUBLIC_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: auth-api-pem
+                  key: public_key_pem
 
           resources:
             requests:
               cpu: 250m
               memory: 256Mi
             limits:
-              cpu: 1000m
+              cpu: "1"
               memory: 512Mi
-
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
 
           livenessProbe:
             httpGet:
@@ -59,6 +74,19 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
 
-          terminationMessagePolicy: File
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
 
       terminationGracePeriodSeconds: 30
