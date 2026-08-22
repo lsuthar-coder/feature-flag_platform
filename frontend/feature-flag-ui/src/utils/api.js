@@ -23,6 +23,7 @@ api.interceptors.response.use(res => res, async err => {
 })
 export const login         = (email, pw) => api.post("/auth/login", { email, password: pw })
 export const getMe         = ()          => api.get("/auth/me")
+export const logout = () => api.post('/auth/logout')
 export const getHealth     = ()          => api.get("/health")
 export const getFlags      = (env)       => api.get("/flags", { params: env ? { environment: env } : {} })
 export const getFlag       = (name)      => api.get("/flags/" + name)
