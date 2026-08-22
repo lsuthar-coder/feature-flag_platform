@@ -1,7 +1,7 @@
 import axios from "axios"
 import { store } from "../store"
 import { authActions } from "../store"
-const BASE = import.meta.env.VITE_API_URL || "https://api.lsuthar.in"
+const BASE = "https://auth-api.flag.lsuthar.in"
 const TK = "ff_token"
 const api = axios.create({ baseURL: BASE, withCredentials: true })
 api.interceptors.request.use(cfg => { const t = localStorage.getItem(TK); if (t) cfg.headers.Authorization = "Bearer " + t; return cfg })
