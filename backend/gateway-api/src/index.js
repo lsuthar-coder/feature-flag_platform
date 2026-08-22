@@ -20,6 +20,7 @@ const metrics                    = require('./metrics');
 const { register }               = require('prom-client');
 const publicRoutesCache = require('./router/public-routes');
 const publicRoutesRouter = require('./admin/public-routes'); 
+const runMigrations = require('./db/migrate');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -144,6 +145,7 @@ async function start() {
   await fetchPublicKey();
   console.log('JWT public key loaded from Auth Service');
 
+  await runMigrations();
   await loadRoutes();
 
   await publicRoutesCache.start();
@@ -154,7 +156,7 @@ async function start() {
   app.listen(PORT, () => {
     console.log(JSON.stringify({ event: 'gateway_started', port: PORT }));
   });
-}
+} 
 
 start().catch(err => {
   console.error('Gateway startup failed:', err);
