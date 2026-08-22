@@ -82,13 +82,9 @@ async function startServer() {
       }));
     });
   } catch (error) {
-    console.error(JSON.stringify({
-      event: 'migration_failed',
-      error: error.message,
-    }));
-
-    process.exit(1);
-  }
+  console.error('MIGRATION ERROR:', error);
+  process.exit(1);
+}
 }
 
 startServer();
